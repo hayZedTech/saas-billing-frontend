@@ -6,22 +6,38 @@ import Dashboard from "./Dashboard";
 import Pricing from "./Pricing";
 
 export default function App() {
-  const token = localStorage.getItem("token");
-  const userRaw = localStorage.getItem("user");
+  const [hydrated, setHydrated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
-  // parse the user only once (so Dashboard receives an object)
-  const user = userRaw ? JSON.parse(userRaw) : null;
+  useEffect(() => {
+    // Read localStorage after hydration
+    const t = localStorage.getItem("token");
+    const u = localStorage.getItem("user");
+    setToken(t);
+    setUser(u ? JSON.parse(u) : null);
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) return null; // prevent first render until localStorage is read
+
   const isAuthenticated = !!token && !!user;
 
   return (
     <Router>
-     <Routes>
+      <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={ isAuthenticated ? <Dashboard /> : <Navigate to="/login" /> } />
-        <Route path="/pricing" element={ isAuthenticated ? <Pricing /> : <Navigate to="/login" /> } />
+        <Route
+          path="/"
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pricing"
+          element={isAuthenticated ? <Pricing /> : <Navigate to="/login" />}
+        />
         <Route path="*" element={<Navigate to="/login" />} />
-     </Routes>
+      </Routes>
     </Router>
   );
 }
