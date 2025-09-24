@@ -6,28 +6,28 @@ import Dashboard from "./Dashboard";
 import Pricing from "./Pricing";
 
 export default function App() {
-  const [hydrated, setHydrated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [hydrated, setHydrated] = useState(false);
 
+  // Load from localStorage on mount (hydration)
   useEffect(() => {
-    // Read localStorage after hydration
-    const t = localStorage.getItem("token");
-    const u = localStorage.getItem("user");
-    setToken(t);
-    setUser(u ? JSON.parse(u) : null);
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
+      setCurrentUser(JSON.parse(storedUser));
+      setToken(storedToken);
+    }
     setHydrated(true);
   }, []);
 
-  if (!hydrated) return null; // prevent first render until localStorage is read
+  if (!hydrated) return null; // prevent premature render
 
-  const isAuthenticated = !!token && !!user;
+  const isAuthenticated = !!currentUser && !!token;
 
   return (
     <Router>
       <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
         <Route
           path="/"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
@@ -36,6 +36,8 @@ export default function App() {
           path="/pricing"
           element={isAuthenticated ? <Pricing /> : <Navigate to="/login" />}
         />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
